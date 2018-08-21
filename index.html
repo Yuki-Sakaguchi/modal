@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Modal</title>
+    <style>
+      .modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+      }
+      .modal-overray {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+        background-color: rgba(0,0,0,0.8);
+      }
+      .modal-contents {
+        background-color: white;
+        max-width: 90%;
+        margin: 0;
+        padding: 10px;
+        position:fixed;
+        z-index: 2;
+      }
+      .modal-contents img {
+        height: auto;
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- modal body -->
+    <div id="modal" style="display: none;">
+      <p>text</p>
+    </div>
+
+    <!-- modal trigger button -->
+    <a class="js-modal" data-modal-target="./images/sample01.jpg">画像の表示</a>
+    <a class="js-modal" data-modal-target="#modal">inlineの表示</a>
+
+    <!-- modal scripts -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+      $.fn.modal = function(_options) {
+        this.each(function() {
+          var $this = $(this);
+          var target = $this.data('modalTarget');
+          var type = checkTarget(target);
+
+          var $window = $(window);
+          var $body = $('body');
+
+          const options = $.extend({
+            className: 'js-modal',
+            content: '',
+          }, _options);
+
+          function checkTarget(target) {
+            if (target.indexOf('#') == 0) {
+              return 'inline';
+            } else if (target.indexOf('.jpg') != -1 || target.indexOf('.png')) {
+              return 'img';
+            }
+          }
+
+          function createModal() {
+            var html = options.content ? $(options.content).html() : $(target).html();
+            
+            if (type == 'inline') {
+
+              return $('<div class="modal">'
+                    +   '<div class="modal-overray"></div>'
+                    +   '<div class="modal-contents">'
+                    +       html
+                    +   '</div>'
+                    + '</div>');
+
+            } else if (type == 'img') {
+
+              return $('<div class="modal">'
+                    +   '<div class="modal-overray"></div>'
+                    +   '<div class="modal-contents">'
+                    +       '<img class="modal-img" src="' + target + '">'
+                    +   '</div>'
+                    + '</div>');
+
+            }
+          }
+
+          function showModal() {
+            $body.append(createModal().hide().fadeIn(300));
+
+            var $modal = $('.modal');
+            var $modalContents = $(".modal-contents");
+            var $modalImg = $('.modal-img');
+
+            if ($modalImg.length > 0) {
+              $modalImg.on('load', init);
+            } else {
+              init();
+            }
+
+            function init() {
+              set();
+
+              var $overray = $('.modal-overray');
+              $overray.on('click', close);
+
+              function close() {
+                $modal.fadeOut(300, function() {
+                  $(this).remove();
+                })
+              }
+
+              $window.on('resize', set);
+            }
+
+            function set() {
+              var w = $window.width();
+              var h = $window.height();
+              var cw = $modalContents.outerWidth();
+              var ch = $modalContents.outerHeight();
+
+              $modalContents.css({
+                "left": ((w - cw)/2) + "px",
+                "top": ((h - ch)/2) + "px"
+              });
+            }
+          }
+
+          $this.on('click', showModal);
+        });
+      };
+
+      $(function() {
+        $('.js-modal').modal({
+          content: '<div>testtesttest</div>'
+        });
+      });
+    </script>
+  </body>
+</html>
